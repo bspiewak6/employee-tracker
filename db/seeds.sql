@@ -1,3 +1,6 @@
+USE employee_db;
+
+-- Department table seed data
 INSERT INTO department (name)
 VALUES
     ('Sales'),
@@ -6,6 +9,7 @@ VALUES
     ('Marketing'),
     ('Legal');
 
+-- Role table seed data
 INSERT INTO role (title, salary, department_id)
 VALUES
     ('Sales Lead', 100000, 1),
@@ -17,11 +21,10 @@ VALUES
     ('Lawyer', 100000, 5),
     ('Graphic Designer', 95000, 4);
 
-
-
+-- Employee table seed data
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES
-    ('Pierre-Emerick', 'Aubameyang', 101, null ),
+    ('Pierre-Emerick', 'Aubameyang', 101, null),
     ('Alexandre', 'Lacazette', 102, 1),
     ('Thomas', 'Partey', 103, null),
     ('Granit', 'Xhaka', 104, null),
