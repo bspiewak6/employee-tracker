@@ -2,8 +2,6 @@ const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 
-// const express = require('express');
-
 // Create the connection to database
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -26,66 +24,65 @@ mainMenu = () => {
   // prompt creating main menu for user to choose from
   inquirer.prompt(
     {
-      name: "action",
+      name: "menu",
       type: "list",
-      message: "Main Menu",
+      message: "What would you like to do?",
       choices: 
       [
         "View All Employees",
-        "View All Employees By Role",
-        "View All Employees By Department",
-        "View All Employees By Manager",
-        "Add Employee",
-        "Add Role",
-        "Add Department",
-        "Update Employee Role",
-        "Update Employee Manager",
-        "Delete Employee",
-        "Delete Role",
-        "Delete Department",
-        "View Department Budgets"
+        "View All Departments",
+        "View All Roles",
+        "Add A Department",
+        "Add A Role",
+        "Add An Employee",
+        "Update An Employee Role",
+        // "Update Employee Managers",
+        // "View Employees By Manager",
+        // "View Employees By Department"
+        // "Delete An Employee",
+        // "Delete A Role",
+        // "Delete A Department",
+        // "View Department Budgets"
       ]
-  });
+  })
+  .then(answers => {
+    switch (answers.main) {
+      case "View All Employees":
+        viewAllEmployees();
+        break;
+    }
+
+  })
 };
 
 // query to view all employees
-const viewAllEmployees = () => {
-    let query = ``
+// const viewAllEmployees = () => {
+//     let query = ``
 
-    // simple query that will SELECT what is being targeted in query variable 
-    connection.query(query, function(err, res) {
-        if (err) throw err;
-        console.log(err);
+//     // simple query that will SELECT what is being targeted in query variable 
+//     connection.query(query, function(err, res) {
+//         if (err) throw err;
+//         res.status(400).json({ error: err.message });
      
-    // display results of query using console.table
-    console.table(res);
+//     // display results of query using console.table
+//     console.table(res);
 
-    // go back to main menu 
-    mainMenu();
-  });
+//     // go back to main menu 
+//     mainMenu();
+//   });
+// };
+
+
+// query to view all departments
+const viewAllDept = () => {
+    let query = `SELECT * FROM departments`;
+
+    connection.query(query, function(err, res) {
+      if(err) throw err;
+      console.log(err);
+
+      console.table(res);
+
+      mainMenu();
+    });
 };
-
-
-// query to view all employees by role
-const viewAllEmpByRole = () => {
-
-}
-
-
-// express middleware
-// app.use(express.urlencoded({ extended: false }));
-// app.use(express.json()); 
-
-// app.get('/', (req, res) => {
-//     res.json({
-//       message: 'Hello World'
-//     });
-// });  
-
-// // PORT designation and app expression
-// const PORT = process.env.PORT || 3001;
-// const app = express();
-
-// app.listen(PORT, () => {
-//     console.log(`Server running on port ${PORT}`);
-// });
