@@ -29,13 +29,14 @@ mainMenu = () => {
       message: "What would you like to do?",
       choices: 
       [
-        "View All Employees",
         "View All Departments",
         "View All Roles",
+        "View All Employees",
         "Add A Department",
         "Add A Role",
         "Add An Employee",
         "Update An Employee Role",
+        "Exit Application"
         // "Update Employee Managers",
         // "View Employees By Manager",
         // "View Employees By Department"
@@ -46,43 +47,91 @@ mainMenu = () => {
       ]
   })
   .then(answers => {
-    switch (answers.main) {
+    switch (answers.menu) {
+      case "View All Departments":
+        viewAllDept();
+        break;  
+      case "View All Roles":
+        viewAllRoles();
+        break  
       case "View All Employees":
         viewAllEmployees();
         break;
+      case "Add A Department":
+        addDepartment();
+        break;
+      case "Add A Role":
+        addRole();
+        break;
+      case "Add An Employee":
+        addEmployee();
+        break;
+      case "Update An Employee Role":
+        updateEmployeeRole();
+        break;
+      case "Exit Application":
+        exitApp();
+        break;
     }
-
   })
 };
 
-// query to view all employees
-// const viewAllEmployees = () => {
-//     let query = ``
-
-//     // simple query that will SELECT what is being targeted in query variable 
-//     connection.query(query, function(err, res) {
-//         if (err) throw err;
-//         res.status(400).json({ error: err.message });
-     
-//     // display results of query using console.table
-//     console.table(res);
-
-//     // go back to main menu 
-//     mainMenu();
-//   });
-// };
-
-
 // query to view all departments
 const viewAllDept = () => {
-    let query = `SELECT * FROM departments`;
-
-    connection.query(query, function(err, res) {
-      if(err) throw err;
-      console.log(err);
-
-      console.table(res);
-
-      mainMenu();
+    console.log('Displaying all departments');
+    connection.query('SELECT * FROM departments;', function (err, res) {
+        if(err) throw err;
+        console.table(res);
+        mainMenu();
     });
+};
+
+// query to view all roles
+const viewAllRoles = () => {
+  console.log('Displaying all roles');
+  connection.query(`SELECT roles.id, roles.title, roles.salary, departments.name AS departments_name 
+                    FROM roles 
+                    LEFT JOIN departments ON roles.department_id = departments.id;`, function (err, res) {
+      if(err) throw err;
+      console.table(res);
+      mainMenu();
+  });
+};
+
+// query to view all employees
+const viewAllEmployees = () => {
+  console.log('Displaying all employees');
+  connection.query(`SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.name AS Dept_Name,
+                  FROM employees
+                  RIGHT JOIN roles ON employees.role_id = roles.id
+                  RIGHT JOIN departments ON roles.department_id = departments.id;`, function (err, res) {
+      if(err) throw err;
+      console.table(res);
+      mainMenu();
+  });
+};
+
+// query to add a department
+const addDepartment = () => {
+  inquirer
+    .prompt({
+      name: "department",
+      type: "input",
+      message: "What would you like to name the new department?"
+    })
+    .then(answers => {
+      connection.query(`INSERT INTO department SET ?`,
+        {
+          name: answers.department,
+        },
+        function(err, res) {
+          if(err) throw err;
+          mainMenu();
+        });
+    });
+};
+
+// exit app
+const exitApp = () => {
+  connection.end();
 };
