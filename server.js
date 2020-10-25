@@ -1,6 +1,7 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
+const data = [];
 
 // Create the connection to database
 const connection = mysql.createConnection({
@@ -14,9 +15,11 @@ const connection = mysql.createConnection({
 // Establish connection to database
 connection.connect(err => {
   if (err) throw err;
+  welcome();
+});
 
-// startup main menu as mainMenu()
-// employee manager banner
+const welcome = () => {
+// employee manager application banner
 console.log(`,-----------------------------------------------------.
 |                                                     |
 |     _____                 _                         |
@@ -35,8 +38,18 @@ console.log(`,-----------------------------------------------------.
 |                                                     |
 \`-----------------------------------------------------'
 `);
+  // connection.query(`SELECT * FROM employees`, function (err, res) {
+  //     if (err) throw err;
+  //     // console.log(res);
+  //     for (let i = 0; i < res.length; i++) {
+  //         let element = res[i].first_name;
+  //         data.push(element);
+  //         console.log(data);
+  //     }
+  // });
+  // startup main menu as mainMenu()
   mainMenu();
-});
+};
 
 mainMenu = () => {
   // prompt creating main menu for user to choose from
@@ -54,11 +67,11 @@ mainMenu = () => {
         "Add A Role", // required 
         "Add An Employee", // required
         "Update An Employee Role", // required
-        "Exit Application" // required
+        "Delete An Employee", // BONUS
+        "Exit Application" // 
         // "Update Employee Managers", // bonus
         // "View Employees By Manager", // bonus
         // "View Employees By Department" // bonus
-        // "Delete An Employee", // bonus
         // "Delete A Role", // bonus
         // "Delete A Department", // bonus
         // "View Department Budgets" // bonus
@@ -86,6 +99,9 @@ mainMenu = () => {
         break;
       case "Update An Employee Role":
         updateEmployeeRole();
+        break;
+      case "Delete An Employee":
+        deleteEmployee();
         break;
       case "Exit Application":
         exitApp();
@@ -136,11 +152,12 @@ const addDepartment = () => {
   console.log('Adding a new department...\n');
   inquirer
     .prompt({
-      name: "department",
       type: "input",
+      name: "department",
       message: "What would you like to name the new department?"
     })
     .then(answers => {
+      console.log(answers)
       connection.query(`INSERT INTO departments SET ?`,
         {
           name: answers.department,
@@ -158,30 +175,59 @@ const addDepartment = () => {
 // query to add a role
 const addRole = () => {
   inquirer
-    .prompt(
+    .prompt([
       {
-        name: "title",
         type: "input",
-        message: "What would you like to name the role?"
+        name: "roleTitle",
+        message: "What would you like to name the role?",
+        validate: (roleInput) => {
+          if (roleInput) {
+            return true;
+          } else {
+            console.log('You must enter the name of the role.');
+            return false;
+          }
+        }
       },
       {
+        type: "number",
         name: "salary",
-        type: "input",
-        message: "What is the salary for this role?"
+        message: "What is the salary for this role?",
+        validate: (salaryInput) => {
+          if (salaryInput >= 20000) {
+            return true;           
+          } else {
+            console.log('You must enter the appropriate salary for this role.');
+            return false;
+          }
+        }
       },
-    )
+      {
+         type: "number",
+         name: "dept",
+         message: "What is the department ID for this role?", 
+         validate: (deptInput) => {
+           if (!deptInput) {
+            console.log('You must enter the department ID for this role'); 
+            return false;
+           } else {
+            return true;
+           }
+         } 
+      }
+    ])
     .then(answers => {
+      console.log(answers)
       connection.query(`INSERT INTO roles SET ?`,
         {
-          title: answers.title,
-        },
-        {
-          salary: answers.salary
+          title: answers.roleTitle,
+          salary: answers.salary,
+          department_id: answers.dept
         },
         function(err, res) {
           if(err) throw err;
-          console.table(res)
-          mainMenu();
+          console.log(res.affectedRows + ' role added! Please view all roles to verify \n');
+          mainMenu()
         });
     });
 };
@@ -189,37 +235,137 @@ const addRole = () => {
 // query to add an employee
 const addEmployee = () => {
   inquirer
-    .prompt(
+    .prompt([
       {
-        name: "firstName",
         type: "input",
-        message: "What is the employee's first name?"
+        name: "empFirstName",
+        message: "What is the employee's first name?",
+        validate: (firstName) => {
+          if (firstName) {
+            return true;
+          } else {
+            console.log("You must enter the employee's first name."); 
+           return false;
+          }
+        } 
       },
       {
-        name: "lastName",
         type: "input",
-        message: "What is the employee's last name?"
+        name: "empLastName",
+        message: "What is the employee's last name?",
+        validate: (lastName) => {
+          if (lastName) {
+            return true;
+          } else {
+            console.log("You must enter the employee's last name."); 
+           return false;
+          }
+        }
       },
       {
-        name: "roleInput",
-        type: "list",
-        message: "What is the employee's role?"
-      },
-    )
-    .then(answers => {
-      connection.query(`INSERT INTO roles SET ?`,
-        {
-          firstName: answers.firstName,
+        type: 'number',
+        name: 'empRole',
+        message: `What is the employee's role id from the list below? \n (1) Sales Lead \n (2) Salesperson \n (3) Accountant \n (4) Chief Marketing Officer
+ (5) Legal Team Lead \n (6) Software Engineer \n (7) Lawyer \n (8) Graphic Designer \n`,
+        validate: function (idInput) {
+        var valid = !isNaN(parseFloat(idInput));
+        return valid || "Please enter the employee's role id number.";
         },
+        filter: Number
+      },
+      {
+        type: 'number',
+        name: 'empManager',
+        message: `Who is this employee's manager? Please provide the manager's ID \n (null) None \n (1) Pierre-Emerick Aubameyang \n (2) Granit Xhaka \n (3) Bukayo Saka \n`,
+        // validate: function (idInput) {
+        //   var valid = !isNaN(parseFloat(idInput));
+        //   return valid || "Please enter the manager's id number.";
+        //   },
+        //   filter: Number
+      }
+      ])
+      .then(answers => {
+      connection.query(`INSERT INTO employees SET ?`,
         {
-          lastName: answers.lastName
+          first_name: answers.empFirstName,
+          last_name: answers.empLastName,
+          role_id: answers.empRole,
+          manager_id: answers.empManager
         },
         function(err, res) {
           if(err) throw err;
-          console.table(res)
-          mainMenu();
+          console.log(res.affectedRows + ' employee added! Please view all employees to verify \n');
+          mainMenu()
         });
     });
+};
+
+// query to update an employee role
+updateEmployee = () => {
+  connection.query(`SELECT CONCAT(employees.first_name, " ", employees.last_name) 
+                  AS Employee_Name FROM employees;`)
+    .then(
+      inquirer
+      .prompt([
+              {
+                type: 'list',
+                name: 'selectedEmp',
+                message: 'Which employee do you want to update a role for?',
+                choices: [{ response }]
+              }
+          ]))
+          .then((response) => {
+            let selectEmp = response;
+              inquirer
+              .prompt([
+              {
+                type: 'input',
+                name: 'empRoleUpdate',
+                message: `What is the new role for ${selectEmp}?`
+              }
+            ])
+            .then(
+            connection.query(`UPDATE employees SET role_id VALUES ? 
+                              WHERE CONCAT(employees.first_name, " ", employees.last_name) = ${selectedEmp};`,
+                      {
+                          role_id: response.empRole
+                      },
+                      function(err, res) {
+                          if (err) throw err;
+                          console.log(`${selectedEmp}'s role updated! Please view all roles to verify \n`);
+                          mainMenu()
+                      }
+                  )
+            );
+      });
+};
+
+// query to delete an employee
+const deleteEmployee = () => {
+  connection.query(`SELECT id, first_name, last_name FROM employees;`,
+      (err, res) => {
+          if (err) throw err;
+          console.table(res);
+      })
+      .then(
+          inquirer.prompt([
+              {
+                  type: 'number',
+                  name: 'deleteEmp',
+                  message: 'Provide the ID of the employee listed above that you want to delete. \n'
+              }
+          ]))
+      .then((deleteEmp) => {
+          connection.query(`DELETE FROM employees WHERE ?; `,
+              {
+                  id: deleteEmp.id
+              },
+              function(err, res) {
+                  if (err) throw err;
+                  console.log(res.affectedRows + ' employee deleted! Please view all employees to verify \n');
+              }
+          );
+      });
 };
 
 // exit app
