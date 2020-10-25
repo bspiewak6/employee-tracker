@@ -1,7 +1,7 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
-const data = [];
+const names = [];
 
 // Create the connection to database
 const connection = mysql.createConnection({
@@ -38,15 +38,6 @@ console.log(`,-----------------------------------------------------.
 |                                                     |
 \`-----------------------------------------------------'
 `);
-  // connection.query(`SELECT * FROM employees`, function (err, res) {
-  //     if (err) throw err;
-  //     // console.log(res);
-  //     for (let i = 0; i < res.length; i++) {
-  //         let element = res[i].first_name;
-  //         data.push(element);
-  //         console.log(data);
-  //     }
-  // });
   // startup main menu as mainMenu()
   mainMenu();
 };
@@ -60,15 +51,15 @@ mainMenu = () => {
       message: "What would you like to do?",
       choices: 
       [
-        "View All Departments", // required
-        "View All Roles", // required
-        "View All Employees", // required
-        "Add A Department", // required
-        "Add A Role", // required 
-        "Add An Employee", // required
-        "Update An Employee Role", // required
-        "Delete An Employee", // BONUS
-        "Exit Application" // 
+        "View All Departments",
+        "View All Roles", 
+        "View All Employees", 
+        "Add A Department", 
+        "Add A Role", 
+        "Add An Employee", 
+        // "Update An Employee Role", 
+        "Exit Application"
+        // "Delete An Employee", // bonus
         // "Update Employee Managers", // bonus
         // "View Employees By Manager", // bonus
         // "View Employees By Department" // bonus
@@ -97,15 +88,15 @@ mainMenu = () => {
       case "Add An Employee":
         addEmployee();
         break;
-      case "Update An Employee Role":
-        updateEmployeeRole();
-        break;
-      case "Delete An Employee":
-        deleteEmployee();
-        break;
       case "Exit Application":
         exitApp();
         break;
+      // case "Update An Employee Role":
+      //   updateEmployeeRole();
+      //   break;
+      // case "Delete An Employee":
+      //   deleteEmployee();
+      //   break;
     }
   })
 };
@@ -165,8 +156,6 @@ const addDepartment = () => {
         function(err, res) {
           if(err) throw err;
           console.log(res.affectedRows + ' department added! Please view all departments to verify \n');
-          // console.table(res)
-          // viewAllDept();
           mainMenu();
         });
     });
@@ -277,11 +266,6 @@ const addEmployee = () => {
         type: 'number',
         name: 'empManager',
         message: `Who is this employee's manager? Please provide the manager's ID \n (null) None \n (1) Pierre-Emerick Aubameyang \n (2) Granit Xhaka \n (3) Bukayo Saka \n`,
-        // validate: function (idInput) {
-        //   var valid = !isNaN(parseFloat(idInput));
-        //   return valid || "Please enter the manager's id number.";
-        //   },
-        //   filter: Number
       }
       ])
       .then(answers => {
@@ -301,72 +285,72 @@ const addEmployee = () => {
 };
 
 // query to update an employee role
-updateEmployee = () => {
-  connection.query(`SELECT CONCAT(employees.first_name, " ", employees.last_name) 
-                  AS Employee_Name FROM employees;`)
-    .then(
-      inquirer
-      .prompt([
+updateEmployeeRole = () => {
+  connection.query(`SELECT CONCAT(employees.first_name, " ", employees.last_name) AS Employee_Name FROM employees;`,
+      function (err, res) {
+          if (err) throw err;
+          for (let i = 0; i < res.length; i++) {
+              let name = res[i].Employee_Name;
+              names.push(name);
+          }
+          console.log(names);
+          inquirer.prompt([
               {
-                type: 'list',
-                name: 'selectedEmp',
-                message: 'Which employee do you want to update a role for?',
-                choices: [{ response }]
+                  type: 'list',
+                  name: 'selectedEmp',
+                  message: 'Which employee do you want to update a role for?',
+                  choices: names
               }
-          ]))
-          .then((response) => {
-            let selectEmp = response;
-              inquirer
-              .prompt([
-              {
-                type: 'input',
-                name: 'empRoleUpdate',
-                message: `What is the new role for ${selectEmp}?`
-              }
-            ])
-            .then(
-            connection.query(`UPDATE employees SET role_id VALUES ? 
-                              WHERE CONCAT(employees.first_name, " ", employees.last_name) = ${selectedEmp};`,
-                      {
-                          role_id: response.empRole
-                      },
-                      function(err, res) {
-                          if (err) throw err;
-                          console.log(`${selectedEmp}'s role updated! Please view all roles to verify \n`);
-                          mainMenu()
-                      }
-                  )
-            );
+          ])
+              .then((response) => {
+                  inquirer.prompt({
+                      type: 'input',
+                      name: 'empRoleUpdate',
+                      message: `What is the new role this employee?`
+                  })
+                      .then(
+                          connection.query(`UPDATE employees SET role_id VALUES ? WHERE CONCAT(employees.first_name, " ", employees.last_name) = ${selectedEmp}; `,
+                              {
+                                  role_id: response.empRole
+                              },
+                              (err, res) => {
+                                  if (err) throw err;
+                                  console.log(`\n ${selectedEmp} 's role updated! \n`);;
+                              },
+                              mainMenu()
+                          )
+                      );
+              });
       });
 };
 
 // query to delete an employee
-const deleteEmployee = () => {
-  connection.query(`SELECT id, first_name, last_name FROM employees;`,
-      (err, res) => {
-          if (err) throw err;
-          console.table(res);
-      })
-      .then(
-          inquirer.prompt([
-              {
-                  type: 'number',
-                  name: 'deleteEmp',
-                  message: 'Provide the ID of the employee listed above that you want to delete. \n'
-              }
-          ]))
-      .then((deleteEmp) => {
-          connection.query(`DELETE FROM employees WHERE ?; `,
-              {
-                  id: deleteEmp.id
-              },
-              function(err, res) {
-                  if (err) throw err;
-                  console.log(res.affectedRows + ' employee deleted! Please view all employees to verify \n');
-              }
-          );
-      });
-};
+// const deleteEmployee = () => {
+//   connection.query(`SELECT id, first_name, last_name FROM employees;`,
+//       (err, res) => {
+//           if (err) throw err;
+//           console.table(res);
+//       })
+//       .then(
+//           inquirer.prompt([
+//               {
+//                   type: 'number',
+//                   name: 'deleteEmp',
+//                   message: 'Provide the ID of the employee listed above that you want to delete. \n'
+//               }
+//           ]))
+//       .then((deleteEmp) => {
+//           connection.query(`DELETE FROM employees WHERE ?; `,
+//               {
+//                   id: deleteEmp.id
+//               },
+//               function(err, res) {
+//                   if (err) throw err;
+//                   console.log(res.affectedRows + ' employee deleted! Please view all employees to verify \n');
+//               }
+//           );
+//       });
+// };
 
 // exit app
 const exitApp = () => {
