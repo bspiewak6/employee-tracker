@@ -32,5 +32,5 @@ As a business owner, the user wants to be able to view and manage the department
 4. When the user adds a department, role or an employee, they are told that it was successful and that they can check the first queries to see the full tables again.
 
 ## Links
-* [Employee Tracker Walkthrough Video]()
-* [Note Taker App Repository](https://github.com/bspiewak6/employee-tracker)
+* [Employee Tracker App Walkthrough Video](https://drive.google.com/file/d/1Kp_sTz9iBzYUARztgG91Ldj5jMLC9Sfz/view?usp=sharing)
+* [Employee Tracker App Repository](https://github.com/bspiewak6/employee-tracker)

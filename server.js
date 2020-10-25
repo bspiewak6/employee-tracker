@@ -148,7 +148,6 @@ const addDepartment = () => {
       message: "What would you like to name the new department?"
     })
     .then(answers => {
-      console.log(answers)
       connection.query(`INSERT INTO departments SET ?`,
         {
           name: answers.department,
@@ -206,7 +205,6 @@ const addRole = () => {
       }
     ])
     .then(answers => {
-      console.log(answers)
       connection.query(`INSERT INTO roles SET ?`,
         {
           title: answers.roleTitle,
@@ -293,7 +291,6 @@ updateEmployeeRole = () => {
               let name = res[i].Employee_Name;
               names.push(name);
           }
-          console.log(names);
           inquirer.prompt([
               {
                   type: 'list',
