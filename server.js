@@ -15,8 +15,26 @@ const connection = mysql.createConnection({
 connection.connect(err => {
   if (err) throw err;
 
-  // startup main menu as mainMenu()
-  console.log('Employee Tracker Main Menu');
+// startup main menu as mainMenu()
+// employee manager banner
+console.log(`,-----------------------------------------------------.
+|                                                     |
+|     _____                 _                         |
+|    | ____|_ __ ___  _ __ | | ___  _   _  ___  ___   |
+|    |  _| | '_ \` _ \\| '_ \\| |/ _ \\| | | |/ _ \\/ _ \\  |
+|    | |___| | | | | | |_) | | (_) | |_| |  __/  __/  |
+|    |_____|_| |_| |_| .__/|_|\\___/ \\__, |\\___|\\___|  |
+|                    |_|            |___/             |
+|                                                     |
+|     __  __                                          |
+|    |  \\/  | __ _ _ __   __ _  __ _  ___ _ __        |
+|    | |\\/| |/ _\` | '_ \\ / _\` |/ _\` |\/ _ \\ '__|       |
+|    | |  | | (_| | | | | (_| | (_| |  __/ |          |
+|    |_|  |_|\\__,_|_| |_|\\__,_|\\__, |\\___|_|          |
+|                              |___/                  |
+|                                                     |
+\`-----------------------------------------------------'
+`);
   mainMenu();
 });
 
@@ -29,21 +47,21 @@ mainMenu = () => {
       message: "What would you like to do?",
       choices: 
       [
-        "View All Departments",
-        "View All Roles",
-        "View All Employees",
-        "Add A Department",
-        "Add A Role",
-        "Add An Employee",
-        "Update An Employee Role",
-        "Exit Application"
-        // "Update Employee Managers",
-        // "View Employees By Manager",
-        // "View Employees By Department"
-        // "Delete An Employee",
-        // "Delete A Role",
-        // "Delete A Department",
-        // "View Department Budgets"
+        "View All Departments", // required
+        "View All Roles", // required
+        "View All Employees", // required
+        "Add A Department", // required
+        "Add A Role", // required 
+        "Add An Employee", // required
+        "Update An Employee Role", // required
+        "Exit Application" // required
+        // "Update Employee Managers", // bonus
+        // "View Employees By Manager", // bonus
+        // "View Employees By Department" // bonus
+        // "Delete An Employee", // bonus
+        // "Delete A Role", // bonus
+        // "Delete A Department", // bonus
+        // "View Department Budgets" // bonus
       ]
   })
   .then(answers => {
@@ -101,10 +119,12 @@ const viewAllRoles = () => {
 // query to view all employees
 const viewAllEmployees = () => {
   console.log('Displaying all employees');
-  connection.query(`SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.name AS Dept_Name,
+  connection.query(`SELECT employees.id, employees.first_name, employees.last_name, roles.title, 
+                  departments.name AS department, roles.salary, employees.manager_id AS manager
                   FROM employees
                   RIGHT JOIN roles ON employees.role_id = roles.id
-                  RIGHT JOIN departments ON roles.department_id = departments.id;`, function (err, res) {
+                  RIGHT JOIN departments ON roles.department_id = departments.id 
+                  ORDER BY employees.id;`, function (err, res) {
       if(err) throw err;
       console.table(res);
       mainMenu();
@@ -113,6 +133,7 @@ const viewAllEmployees = () => {
 
 // query to add a department
 const addDepartment = () => {
+  console.log('Adding a new department...\n');
   inquirer
     .prompt({
       name: "department",
@@ -120,12 +141,82 @@ const addDepartment = () => {
       message: "What would you like to name the new department?"
     })
     .then(answers => {
-      connection.query(`INSERT INTO department SET ?`,
+      connection.query(`INSERT INTO departments SET ?`,
         {
           name: answers.department,
         },
         function(err, res) {
           if(err) throw err;
+          console.log(res.affectedRows + ' department added! Please view all departments to verify \n');
+          // console.table(res)
+          // viewAllDept();
+          mainMenu();
+        });
+    });
+};
+
+// query to add a role
+const addRole = () => {
+  inquirer
+    .prompt(
+      {
+        name: "title",
+        type: "input",
+        message: "What would you like to name the role?"
+      },
+      {
+        name: "salary",
+        type: "input",
+        message: "What is the salary for this role?"
+      },
+    )
+    .then(answers => {
+      connection.query(`INSERT INTO roles SET ?`,
+        {
+          title: answers.title,
+        },
+        {
+          salary: answers.salary
+        },
+        function(err, res) {
+          if(err) throw err;
+          console.table(res)
+          mainMenu();
+        });
+    });
+};
+
+// query to add an employee
+const addEmployee = () => {
+  inquirer
+    .prompt(
+      {
+        name: "firstName",
+        type: "input",
+        message: "What is the employee's first name?"
+      },
+      {
+        name: "lastName",
+        type: "input",
+        message: "What is the employee's last name?"
+      },
+      {
+        name: "roleInput",
+        type: "list",
+        message: "What is the employee's role?"
+      },
+    )
+    .then(answers => {
+      connection.query(`INSERT INTO roles SET ?`,
+        {
+          firstName: answers.firstName,
+        },
+        {
+          lastName: answers.lastName
+        },
+        function(err, res) {
+          if(err) throw err;
+          console.table(res)
           mainMenu();
         });
     });
