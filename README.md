@@ -10,9 +10,10 @@ As a business owner, the user wants to be able to view and manage the department
 * [Links](#links)
 
 ## Technologies
-1. MySQL
+1. MySQL/MySQL2
 2. Inquirer
-3. Javascript
+3. Node.js
+4. JavaScript
 
 ## Mockups
 ![Mockup](./images/Screenshot_Welcome.png)
